@@ -1,4 +1,5 @@
-﻿// Global courses object with all course data
+﻿
+// Global courses object with all course data
 const coursesData = {};
 
 var currentStudentId = @Model.StudentId;

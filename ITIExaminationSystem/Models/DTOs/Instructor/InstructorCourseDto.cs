@@ -1,13 +1,10 @@
-﻿namespace ITIExaminationSystem.Models.DTOs.Instructor
+﻿public class InstructorCourseDto
 {
-    public class InstructorCourseDto
-    {
-        public int Course_Id { get; set; }
-        public string Course_Name { get; set; }
-        public int Duration { get; set; }
+    public int Course_Id { get; set; }
 
-        // 🔥 Flattened instructor data
-        public string InstructorName { get; set; }
-        public string InstructorEmail { get; set; }
-    }
+    public string? Course_Name { get; set; }   // ✅ nullable
+    public int Duration { get; set; }
+
+    public string? InstructorName { get; set; }   // ✅ nullable
+    public string? InstructorEmail { get; set; }  // ✅ nullable
 }

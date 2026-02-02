@@ -262,42 +262,37 @@ function openEditCourseModal(courseId, courseName, duration) {
 function handleEditCourse(event) {
     event.preventDefault();
 
-    const courseId = document.getElementById('edit-course-id').value;
-    const courseName = document.getElementById('edit-course-name').value;
-    const duration = document.getElementById('edit-course-dur').value;
+    const idValue = document.getElementById('edit-course-id').value;
+
+    if (!idValue) {
+        alert("Course ID is missing");
+        return;
+    }
 
     const payload = {
-        CourseId: parseInt(courseId),
-        CourseName: courseName,
-        Duration: duration
+        CourseId: Number(idValue),
+        CourseName: document.getElementById('edit-course-name').value,
+        Duration: Number(document.getElementById('edit-course-dur').value)
     };
-
-    console.log('Updating course:', payload);
 
     fetch('/Instructor/EditCourse', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
     })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to update course');
-            }
-            return response.text();
-        })
-        .then(message => {
-            console.log(message);
+        .then(r => r.text())
+        .then(msg => {
             closeModal();
             window.location.reload();
         })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Failed to update course');
+        .catch(err => {
+            console.error(err);
+            alert("Update failed");
         });
 }
+
 
 // ==========================================
 // ✅ HANDLE ADD COURSE FORM SUBMISSION
@@ -305,44 +300,27 @@ function handleEditCourse(event) {
 function handleAddCourse(event) {
     event.preventDefault();
 
-    const courseId = document.getElementById('inp-course-id').value;
-    const courseName = document.getElementById('inp-course-name').value;
-    const instName = document.getElementById('inp-course-inst').value;
-    const instEmail = document.getElementById('inp-course-email').value;
-    const duration = document.getElementById('inp-course-dur').value;
-
     const payload = {
-        CourseId: courseId ? parseInt(courseId) : null,
-        CourseName: courseName,
-        InstructorName: instName,
-        InstructorEmail: instEmail,
-        Duration: duration
+        CourseId: null,
+        CourseName: document.getElementById('inp-course-name').value,
+        Duration: parseInt(document.getElementById('inp-course-dur').value)
     };
-
-    console.log('Adding course:', payload);
 
     fetch('/Instructor/AddCourse', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
     })
-    .then(response => {
-        if (response.ok) return response.text();
-        throw new Error('Failed to save course');
-    })
-    .then(message => {
-        console.log(message);
-        closeModal();
-        window.location.reload();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to save course');
-    });
+        .then(res => {
+            if (!res.ok) throw new Error();
+            closeModal();
+            window.location.reload();
+        })
+        .catch(() => alert('Failed to save course'));
 }
+
 
 // ==========================================
 // EDIT STUDENT MODAL
@@ -779,4 +757,3 @@ function createRippleEffect(button, event) {
         }
     }, 600);
 }
-

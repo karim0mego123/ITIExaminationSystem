@@ -42,6 +42,8 @@ namespace ITIExaminationSystem.Controllers
                 .FromSqlRaw("EXEC sp_Instructor_GetAllStudents")
                 .ToList();
 
+            ViewBag.Tracks = _context.Tracks.ToList();
+            ViewBag.Branches = _context.Branches.ToList(); 
             ViewBag.Tracks = _context.Tracks.ToList(); // simple EF ok
             ViewBag.instractors = _context.Instructors.Count();
             ViewBag.StudentCount = students.Count;
@@ -101,12 +103,13 @@ namespace ITIExaminationSystem.Controllers
         [HttpPost]
         public IActionResult DeleteStudent(int userId)
         {
+            
             _context.Database.ExecuteSqlRaw(
                 "EXEC sp_Instructor_DeleteStudent @UserId",
                 new SqlParameter("@UserId", userId)
             );
 
-            return Ok();
+            return RedirectToAction("insDiplayStudents");
         }
 
         // =========================
@@ -123,22 +126,29 @@ namespace ITIExaminationSystem.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddCourse([FromBody] CourseDto model)
+        public IActionResult AddCourse([FromBody] CourseSaveDto model)
         {
             _context.Database.ExecuteSqlRaw(
-                "EXEC sp_Instructor_SaveCourse @Id,@Name,@Duration",
-                new SqlParameter("@Id", model.CourseId ?? (object)DBNull.Value),
+                "EXEC sp_Instructor_SaveCourse @CourseId,@Name,@Duration",
+                new SqlParameter("@CourseId", model.CourseId ?? (object)DBNull.Value),
                 new SqlParameter("@Name", model.CourseName),
                 new SqlParameter("@Duration", model.Duration)
             );
 
-            return Ok();
+            return Ok("Course added successfully");
         }
 
 
+
         [HttpPost]
-        public IActionResult EditCourse([FromBody] EditCourseDto model)
+        public IActionResult EditCourse([FromBody] CourseSaveDto model)
         {
+            if (model == null)
+                return BadRequest("Invalid payload");
+
+            if (model.CourseId == null)
+                return BadRequest("CourseId is required");
+
             _context.Database.ExecuteSqlRaw(
                 "EXEC sp_Instructor_SaveCourse @CourseId,@Name,@Duration",
                 new SqlParameter("@CourseId", model.CourseId),
@@ -146,24 +156,46 @@ namespace ITIExaminationSystem.Controllers
                 new SqlParameter("@Duration", model.Duration)
             );
 
-            return Ok();
+            return Ok("Course updated successfully");
         }
+
 
         [HttpPost]
-        public IActionResult DeleteCourse(int courseId)
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateExam(UpdateExamDto model)
         {
-            _context.Database.ExecuteSqlRaw(
-                "EXEC sp_Instructor_DeleteCourse @CourseId",
-                new SqlParameter("@CourseId", courseId)
-            );
+            try
+            {
+                if (model.ExamId <= 0)
+                    return BadRequest("Invalid ExamId");
 
-            return Ok();
+                _context.Database.ExecuteSqlRaw(
+                    @"EXEC sp_Instructor_UpdateExam 
+              @ExamId, @Course, @Date, @Time, @Duration, @Full,
+              @McqC, @TfC, @McqM, @TfM, @Branch, @Track",
+                    new SqlParameter("@ExamId", model.ExamId),
+                    new SqlParameter("@Course", model.CourseId),
+                    new SqlParameter("@Date", model.Date),
+                    new SqlParameter("@Time", model.Time),
+                    new SqlParameter("@Duration", model.Duration),
+                    new SqlParameter("@Full", model.FullMarks),
+                    new SqlParameter("@McqC", model.McqCount ?? 0),
+                    new SqlParameter("@TfC", model.TrueFalseCount ?? 0),
+                    new SqlParameter("@McqM", model.McqMarks ?? 0),
+                    new SqlParameter("@TfM", model.TrueFalseMarks ?? 0),
+                    new SqlParameter("@Branch", model.BranchId ?? (object)DBNull.Value),
+                    new SqlParameter("@Track", model.TrackId ?? (object)DBNull.Value)
+                );
+
+                return RedirectToAction("Exams");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating exam {ExamId}", model.ExamId);
+                return BadRequest("Failed to update exam: " + ex.Message);
+            }
         }
 
-
-        // =========================
-        // EXAMS
-        // =========================
 
         public IActionResult Exams()
         {
@@ -178,6 +210,72 @@ namespace ITIExaminationSystem.Controllers
             return View("CreateExam", exams);
         }
 
+        [HttpGet]
+        public IActionResult GetExam(int examId)
+        {
+            var exam = _context.Exams
+                .Where(e => e.ExamId == examId)
+                .Select(e => new
+                {
+                    examId = e.ExamId,
+                    courseId = e.CourseId,
+                    courseName = e.Course.CourseName,  // ✅ ADD THIS
+                    date = e.Date.HasValue ? e.Date.Value.ToString("yyyy-MM-dd") : "",
+                    time = e.Time.HasValue ? e.Time.Value.ToString("HH:mm") : "",
+                    duration = e.Duration,
+                    fullMarks = e.FullMarks,
+                    questionCount = e.QuestionCount,
+                    mcqCount = e.McqCount ?? 0,
+                    mcqMarks = e.McqMarks ?? 0,
+                    trueFalseCount = e.TrueFalseCount ?? 0,
+                    trueFalseMarks = e.TrueFalseMarks ?? 0,
+
+                    // ✅ ADD Branch and Track info
+                    branchId = _context.Assigns
+                        .Where(a => a.ExamId == e.ExamId)
+                        .Select(a => (int?)a.BranchId)
+                        .FirstOrDefault(),
+
+                    branchName = _context.Assigns
+                        .Where(a => a.ExamId == e.ExamId)
+                        .Select(a => a.Branch.BranchName)
+                        .FirstOrDefault(),
+
+                    trackId = _context.Assigns
+                        .Where(a => a.ExamId == e.ExamId)
+                        .Select(a => (int?)a.TrackId)
+                        .FirstOrDefault(),
+
+                    trackName = _context.Assigns
+                        .Where(a => a.ExamId == e.ExamId)
+                        .Select(a => a.Track.TrackName)
+                        .FirstOrDefault()
+                })
+                .FirstOrDefault();
+
+            if (exam == null)
+                return NotFound();
+
+            return Json(exam);
+        }
+
+        [HttpPost]
+        public IActionResult DeleteCourse(int courseId)
+        {
+            try
+            {
+                _context.Database.ExecuteSqlRaw(
+                    "EXEC sp_Instructor_DeleteCourse @CourseId",
+                    new SqlParameter("@CourseId", courseId)
+                );
+
+                return Content("Course deleted successfully");
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
 
         [HttpPost]
@@ -185,18 +283,18 @@ namespace ITIExaminationSystem.Controllers
         public IActionResult CreateExam(CreateExamModel model)
         {
             _context.Database.ExecuteSqlRaw(
-                "EXEC sp_Instructor_CreateExam @Course,@Date,@Time,@Duration,@Full,@McqC,@TfC,@McqM,@TfM,@Branch,@Track",
-                new SqlParameter("@Course", model.CourseId),
+                "EXEC sp_Instructor_CreateExam @CourseId,@Date,@Time,@Duration,@FullMarks,@McqCount,@TfCount,@McqMarks,@TfMarks,@BranchId,@TrackId",
+                new SqlParameter("@CourseId", model.CourseId),                    // ✅ Fixed
                 new SqlParameter("@Date", DateOnly.Parse(model.Date)),
                 new SqlParameter("@Time", TimeOnly.Parse(model.Time)),
                 new SqlParameter("@Duration", model.Duration),
-                new SqlParameter("@Full", model.FullMarks),
-                new SqlParameter("@McqC", model.McqCount),
-                new SqlParameter("@TfC", model.TrueFalseCount),
-                new SqlParameter("@McqM", model.McqMarks),
-                new SqlParameter("@TfM", model.TrueFalseMarks),
-                new SqlParameter("@Branch", model.BranchId),
-                new SqlParameter("@Track", model.TrackId)
+                new SqlParameter("@FullMarks", model.FullMarks),
+                new SqlParameter("@McqCount", model.McqCount ?? 0),               // ✅ Fixed
+                new SqlParameter("@TfCount", model.TrueFalseCount ?? 0),          // ✅ Fixed
+                new SqlParameter("@McqMarks", model.McqMarks ?? 0),               // ✅ Fixed
+                new SqlParameter("@TfMarks", model.TrueFalseMarks ?? 0),          // ✅ Fixed
+                new SqlParameter("@BranchId", model.BranchId),
+                new SqlParameter("@TrackId", model.TrackId)
             );
 
             return RedirectToAction("Exams");
@@ -204,7 +302,6 @@ namespace ITIExaminationSystem.Controllers
 
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult DeleteExam(int examId)
         {
             _context.Database.ExecuteSqlRaw(
@@ -212,8 +309,12 @@ namespace ITIExaminationSystem.Controllers
                 new SqlParameter("@ExamId", examId)
             );
 
-            return RedirectToAction("Exams");
+            return Json(new
+            {
+                redirectUrl = Url.Action("Courses", "Instructor")
+            });
         }
+
 
     }
 }

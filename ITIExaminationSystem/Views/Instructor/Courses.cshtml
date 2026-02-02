@@ -2,17 +2,170 @@
     Layout = null;
 }
 @model List<InstructorCourseDto>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ITI Instructor - Dashboard</title>
+    <title>ITI Instructor - Courses</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="icon" type="image/png" href="/images/Gemini_Generated_Image_vi5243vi5243vi52.png">
     <link rel="stylesheet" href="/css/Instructor.css" asp-append-version="true" />
+    <style>
+        /* Circular Button Styles for Carousel */
+        .carousel-btn-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #667eea;
+            background: #214F72;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
 
+            .carousel-btn-circle:hover:not(:disabled) {
+                background: #214F72;
+                transform: scale(1.1);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            }
+
+                .carousel-btn-circle:hover:not(:disabled) svg {
+                    stroke: white;
+                }
+
+            .carousel-btn-circle:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+                border-color: #214F72;
+            }
+
+                .carousel-btn-circle:disabled svg {
+                    stroke: #ccc;
+                }
+
+            .carousel-btn-circle:active:not(:disabled) {
+                transform: scale(0.95);
+            }
+
+        .carousel-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .carousel-info {
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .carousel-indicator {
+            font-size: 14px;
+            color: #666;
+        }
+
+        #currentPage, #totalPages {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        /* Carousel Dots */
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .carousel-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ddd;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .carousel-dot.active {
+                background: #667eea;
+                transform: scale(1.2);
+            }
+
+            .carousel-dot:hover:not(.active) {
+                background: #aaa;
+            }
+
+        /* Modal Styles for Delete Confirmation */
+        .delete-modal-container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            background: #fee2e2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+            .icon-box svg {
+                width: 30px;
+                height: 30px;
+                color: #dc2626;
+            }
+
+        .confirm-text {
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .target-text {
+            color: #111827;
+            font-size: 1.25rem;
+            display: block;
+            margin-bottom: 1.5rem;
+        }
+
+        .warning-details {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-delete-red {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+            .btn-delete-red:hover {
+                background: #b91c1c;
+            }
+    </style>
 </head>
 <body>
     <div id="dashboard-view">
@@ -22,20 +175,19 @@
                 <span class="header-title">Instructor Portal</span>
             </div>
             <nav class="nav-links">
-                <a style="text-decoration: none;" href="/Instructor/insDiplayStudents" class="nav-link ">Students</a>
-                <a style="text-decoration: none;" href="/Instructor/Courses" class="nav-link">Courses</a>
-                <a style="text-decoration: none;" href="/Instructor/Exams" class="nav-link ">Exams</a>
+                <a style="text-decoration: none;" href="/Instructor/insDiplayStudents" class="nav-link">Students</a>
+                <a style="text-decoration: none;" href="/Instructor/Courses" class="nav-link active">Courses</a>
+                <a style="text-decoration: none;" href="/Instructor/Exams" class="nav-link">Exams</a>
             </nav>
-
             <a style="text-decoration: none;" href="/Home/LoginPage" id="logoutBtn" class="nav-link logout-btn">Logout</a>
-
-
         </header>
+
         <div class="bg-shapes">
             <div class="shape shape-1"></div>
             <div class="shape shape-2"></div>
             <div class="shape shape-3"></div>
         </div>
+
         <main class="main-content">
             <!-- Stats Cards -->
             <div class="stats-grid">
@@ -69,10 +221,8 @@
                 </div>
             </div>
 
-
-
             <!-- COURSES TAB -->
-            <div id="tab-courses" >
+            <div id="tab-courses">
                 <div class="data-panel">
                     <div class="panel-header">
                         <h2 class="panel-title">📚 Course Management</h2>
@@ -80,6 +230,31 @@
                             + Add Course
                         </button>
                     </div>
+
+                    <!-- Carousel Navigation with Circular Buttons -->
+                    <div class="carousel-controls">
+                        <button class="carousel-btn-circle prev-btn" id="prevBtn" onclick="moveCarousel(-1)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                 stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+
+                        <div class="carousel-info">
+                            <span class="carousel-indicator">
+                                Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+                            </span>
+                        </div>
+
+                        <button class="carousel-btn-circle next-btn" id="nextBtn" onclick="moveCarousel(1)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                 stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Courses Table -->
                     <table id="table-courses">
                         <thead>
                             <tr>
@@ -87,48 +262,34 @@
                                 <th>Course Name</th>
                                 <th>Instructor</th>
                                 <th>Email</th>
-                                <th>Duration
-</th>
+                                <th>Duration</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="coursesTableBody">
                             @{
                                 int rowNumber = 1;
                             }
                             @foreach (var course in Model)
                             {
-                                <tr>
-                             
-
-                                    <!-- Course ID -->
+                                <tr class="course-row" data-course-id="@course.Course_Id">
                                     <td>@course.Course_Id</td>
-
-                                    <!-- Course Name -->
                                     <td style="font-weight: 600; color: #667eea">
                                         @course.Course_Name
                                     </td>
-
-                                    <!-- Instructor Names -->
                                     <td>
                                         @(string.IsNullOrEmpty(course.InstructorName)
                                             ? "No Instructor"
                                             : course.InstructorName)
                                     </td>
-
-                                    <!-- Instructor Emails -->
                                     <td>
                                         @(string.IsNullOrEmpty(course.InstructorEmail)
                                             ? "-"
                                             : course.InstructorEmail)
                                     </td>
-
-                                    <!-- Tries Limit -->
                                     <td>
                                         <span class="badge badge-purple">@course.Duration</span>
                                     </td>
-
-                                    <!-- Actions -->
                                     <td>
                                         <button class="action-btn btn-edit"
                                                 data-course-id="@course.Course_Id"
@@ -142,103 +303,357 @@
                                                 data-course-name="@course.Course_Name">
                                             Delete
                                         </button>
-
-
                                     </td>
                                 </tr>
                                 rowNumber++;
                             }
                         </tbody>
                     </table>
-                        </div>
-                    </div>
 
-              
+                    <!-- Carousel Dots Navigation -->
+                    <div class="carousel-dots" id="carouselDots">
+                        <!-- Dots will be generated by JavaScript -->
+                    </div>
                 </div>
             </div>
-
         </main>
     </div>
 
+    <!-- MODALS -->
     <div id="modal-overlay" class="modal-overlay hidden">
-
-
+        <!-- Add Course Modal -->
         <div id="modal-course" class="modal-box hidden">
             <h2 class="modal-title">Add New Course</h2>
-
             <form onsubmit="handleAddCourse(event)">
-
-                <input type="hidden" id="inp-course-id" />
-
                 <div class="form-group">
                     <label>Course Name</label>
                     <input type="text" id="inp-course-name" class="form-input" required />
                 </div>
-
                 <div class="form-group">
                     <label>Duration</label>
-                    <input type="text"
-                           id="inp-course-dur"
-                           class="form-input"
-                           required />
+                    <input type="text" id="inp-course-dur" class="form-input" required />
                 </div>
-
                 <div class="modal-actions">
-                    <button type="button"
-                            class="btn-cancel"
-                            onclick="closeModal()">
-                        Cancel
-                    </button>
-
-                    <button type="submit"
-                            class="btn-add">
-                        Save Course
-                    </button>
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-add">Save Course</button>
                 </div>
             </form>
         </div>
 
-
-        <!-- EDIT COURSE MODAL -->
+        <!-- Edit Course Modal -->
         <div id="modal-edit-course" class="modal-box hidden">
             <h2 class="modal-title">Edit Course</h2>
-            <!-- ✅ Change to use handleAddCourse function -->
             <form onsubmit="handleEditCourse(event)">
                 <input type="hidden" id="edit-course-id" />
-
                 <div class="form-group">
                     <label>Course Name</label>
                     <input type="text" id="edit-course-name" class="form-input" required />
                 </div>
-
-                
                 <div class="form-group">
                     <label>Duration</label>
                     <input type="text" id="edit-course-dur" class="form-input" required />
                 </div>
-
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
                     <button type="submit" class="btn-add">Update Course</button>
                 </div>
             </form>
         </div>
+
+        <!-- Delete Course Confirmation Modal -->
+        <div id="modal-delete-course" class="modal-box hidden delete-modal-container">
+            <div class="icon-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+
+            <h2>Delete Course</h2>
+            <p class="confirm-text">Are you sure you want to delete</p>
+            <strong class="target-text" id="delete-course-name">Course Name</strong>
+
+            <p class="warning-details">
+                This action cannot be undone. This will permanently delete the course
+                and remove all associated data from the system.
+            </p>
+
+            <form id="deleteCourseForm" method="post" action="/Instructor/DeleteCourse">
+                <input type="hidden" id="delete-course-id" name="courseId" />
+
+                <div class="button-row">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-delete-red">Delete Course</button>
+                </div>
+            </form>
+
+        </div>
     </div>
 
     <script src="/js/Instructor.js"></script>
     <script>
-            document.addEventListener("DOMContentLoaded", function () {
-            // 1. Initialize the Roller
-            setupIntakeRoller();
+        // ===================================================================
+        // CAROUSEL FUNCTIONALITY FOR COURSES
+        // ===================================================================
+        let currentCarouselPage = 1;
+        let itemsPerPage = 6;
+        let totalItems = 0;
+        let allCourseRows = [];
 
-            // 2. Existing Tab Logic (if you are using it)
-            const btnStudents = document.getElementById('btn-students');
-            if (btnStudents) {
-                 switchTab('Students', btnStudents);
+        // Initialize carousel on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCarousel();
+            initializeDeleteButtons();
+
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
             }
         });
-        </script>
 
+        function initializeCarousel() {
+            const tbody = document.getElementById('coursesTableBody');
+
+            if (!tbody) {
+                console.error('coursesTableBody not found!');
+                return;
+            }
+
+            // Get all course rows
+            allCourseRows = Array.from(tbody.querySelectorAll('tr.course-row'));
+            totalItems = allCourseRows.length;
+
+            console.log(`Found ${totalItems} course rows`);
+
+            if (totalItems === 0) {
+                console.warn('No course data found');
+                return;
+            }
+
+            // Render first page
+            renderCarouselPage(1);
+        }
+
+        function renderCarouselPage(pageNumber) {
+            currentCarouselPage = pageNumber;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+            // Update page indicators
+            const currentPageEl = document.getElementById('currentPage');
+            const totalPagesEl = document.getElementById('totalPages');
+
+            if (currentPageEl) currentPageEl.textContent = currentCarouselPage;
+            if (totalPagesEl) totalPagesEl.textContent = totalPages;
+
+            // Calculate start and end indices
+            const startIndex = (currentCarouselPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+
+            // Show/hide rows based on current page
+            allCourseRows.forEach((row, index) => {
+                if (index >= startIndex && index < endIndex) {
+                    row.style.display = ''; // Show row
+                } else {
+                    row.style.display = 'none'; // Hide row
+                }
+            });
+
+            // Update navigation buttons
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            if (prevBtn) prevBtn.disabled = currentCarouselPage === 1;
+            if (nextBtn) nextBtn.disabled = currentCarouselPage === totalPages;
+
+            // Update dots navigation
+            renderCarouselDots(totalPages);
+        }
+
+        function moveCarousel(direction) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const newPage = currentCarouselPage + direction;
+
+            if (newPage >= 1 && newPage <= totalPages) {
+                renderCarouselPage(newPage);
+            }
+        }
+
+        function goToPage(pageNumber) {
+            renderCarouselPage(pageNumber);
+        }
+
+        function renderCarouselDots(totalPages) {
+            const dotsContainer = document.getElementById('carouselDots');
+
+            if (!dotsContainer) return;
+
+            dotsContainer.innerHTML = '';
+
+            // Only show dots if there's more than 1 page
+            if (totalPages <= 1) return;
+
+            for (let i = 1; i <= totalPages; i++) {
+                const dot = document.createElement('button');
+                dot.className = 'carousel-dot' + (i === currentCarouselPage ? ' active' : '');
+                dot.type = 'button';
+                dot.onclick = () => goToPage(i);
+                dot.setAttribute('aria-label', `Go to page ${i}`);
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        // ===================================================================
+        // DELETE MODAL FUNCTIONS
+        // ===================================================================
+        function openDeleteModal(courseId, courseName) {
+            console.log('Opening delete modal for course:', courseId, courseName);
+
+            const modalOverlay = document.getElementById('modal-overlay');
+            const deleteModal = document.getElementById('modal-delete-course');
+            const courseNameElement = document.getElementById('delete-course-name');
+            const courseIdInput = document.getElementById('delete-course-id');
+
+            if (!modalOverlay || !deleteModal) {
+                console.error('Delete modal elements not found');
+                // Fallback to confirm dialog
+                if (confirm(`Are you sure you want to delete ${courseName}?`)) {
+                    window.location.href = `/Instructor/DeleteCourse?id=${courseId}`;
+                }
+                return;
+            }
+
+            // Set the course name and ID
+            if (courseNameElement) {
+                courseNameElement.textContent = courseName;
+            }
+
+            if (courseIdInput) {
+                courseIdInput.value = courseId;
+            }
+
+            // Show modal
+            modalOverlay.classList.remove('hidden');
+            deleteModal.classList.remove('hidden');
+
+            // Hide other modals
+            document.querySelectorAll('.modal-box').forEach(modal => {
+                if (modal.id !== 'modal-delete-course') {
+                    modal.classList.add('hidden');
+                }
+            });
+        }
+
+        function initializeDeleteButtons() {
+            // Use event delegation for delete buttons
+            document.addEventListener('click', function(e) {
+                const deleteBtn = e.target.closest('.btn-delete');
+
+                if (deleteBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const courseId = deleteBtn.getAttribute('data-course-id');
+                    const courseName = deleteBtn.getAttribute('data-course-name');
+
+                    console.log('Delete clicked for course:', courseId, courseName);
+                    openDeleteModal(courseId, courseName);
+                }
+            });
+        }
+
+        // ===================================================================
+        // EDIT COURSE MODAL
+        // ===================================================================
+        function openEditCourseModal(courseId, courseName, duration) {
+            console.log('Opening edit modal for course:', courseId);
+
+            const modalOverlay = document.getElementById('modal-overlay');
+            const editModal = document.getElementById('modal-edit-course');
+
+            if (!modalOverlay || !editModal) {
+                console.error('Modal elements not found');
+                return;
+            }
+
+            // Set form values
+            document.getElementById('edit-course-id').value = courseId;
+            document.getElementById('edit-course-name').value = courseName;
+            document.getElementById('edit-course-dur').value = duration;
+
+            // Show modal
+            modalOverlay.classList.remove('hidden');
+            editModal.classList.remove('hidden');
+
+            // Hide other modals
+            document.querySelectorAll('.modal-box').forEach(modal => {
+                if (modal.id !== 'modal-edit-course') {
+                    modal.classList.add('hidden');
+                }
+            });
+        }
+
+        // ===================================================================
+        // MODAL FUNCTIONS
+        // ===================================================================
+        function openModal(type) {
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modal = document.getElementById('modal-' + type);
+
+            if (modalOverlay && modal) {
+                modalOverlay.classList.remove('hidden');
+                modal.classList.remove('hidden');
+
+                // Hide other modals
+                document.querySelectorAll('.modal-box').forEach(m => {
+                    if (m.id !== 'modal-' + type) {
+                        m.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        function closeModal() {
+            const modalOverlay = document.getElementById('modal-overlay');
+
+            if (modalOverlay) {
+                modalOverlay.classList.add('hidden');
+
+                // Hide all modal boxes
+                document.querySelectorAll('.modal-box').forEach(modal => {
+                    modal.classList.add('hidden');
+                });
+            }
+        }
+
+  
+       
+
+        // ===================================================================
+        // KEYBOARD NAVIGATION
+        // ===================================================================
+        document.addEventListener('keydown', function(e) {
+            if (e.target.tagName !== 'INPUT' &&
+                e.target.tagName !== 'TEXTAREA' &&
+                e.target.tagName !== 'SELECT') {
+
+                if (e.key === 'ArrowLeft') {
+                    moveCarousel(-1);
+                } else if (e.key === 'ArrowRight') {
+                    moveCarousel(1);
+                } else if (e.key === 'Escape') {
+                    closeModal();
+                }
+            }
+        });
+
+        // Close modal when clicking on overlay
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'modal-overlay') {
+                closeModal();
+            }
+        });
+
+    </script>
 </body>
-
 </html>

@@ -1,4 +1,17 @@
-﻿@using System.Text.Json
+﻿@functions {
+    public string IsActive(string controller, string action = "")
+    {
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+        if (string.IsNullOrEmpty(action))
+            return currentController == controller ? "active" : "";
+
+        return (currentController == controller && currentAction == action) ? "active" : "";
+    }
+}
+
+@using System.Text.Json
 @model StudentProfileDto
 
 @{

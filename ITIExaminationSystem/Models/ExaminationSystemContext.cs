@@ -43,6 +43,8 @@ public partial class ExaminationSystemContext : DbContext
 
     public DbSet<TrackCourseCountDto> TrackCourseCountDtos { get; set; }
 
+    public DbSet<UpdateExamDto> UpdateExamDtos { get; set; }
+
 
 
 
@@ -137,6 +139,7 @@ public partial class ExaminationSystemContext : DbContext
         modelBuilder.Entity<InstructorCourseDto>().HasNoKey();
 
         modelBuilder.Entity<TrackCourseCountDto>().HasNoKey();
+        modelBuilder.Entity<UpdateExamDto>().HasNoKey();
 
 
         modelBuilder.Entity<Admin>(entity =>

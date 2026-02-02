@@ -2331,3 +2331,137 @@ table {
         display: none;
         pointer-events: none; /* Only disable when hidden */
     }
+
+/* ===============================
+   DARK SELECT – SLEEK STYLE
+================================ */
+.form-group select.form-input {
+    width: 100%;
+    padding: 16px 44px 16px 20px;
+    border-radius: 12px;
+    background: #2D2D2E;
+    border: 1px solid #3a3d4a;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 400;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+    /* Hover state */
+    .form-group select.form-input:hover {
+        background: #32353f;
+        border-color: #4a4d5a;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Focus state */
+    .form-group select.form-input:focus {
+        outline: none;
+        background: #32353f;
+        border-color: #5b7cfa;
+        box-shadow: 0 0 0 3px rgba(91, 124, 250, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Placeholder option */
+    .form-group select.form-input option[value=""] {
+        color: #9ca3af;
+    }
+
+    /* Dropdown options */
+    .form-group select.form-input option {
+        background-color: #2D2D2E;
+        color: #ffffff;
+        padding: 12px;
+        font-weight: 400;
+    }
+
+    /* Disabled state */
+    .form-group select.form-input:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #1f2128;
+    }
+
+/* ===============================
+   CUSTOM DROPDOWN ARROW
+================================ */
+.form-group {
+    position: relative;
+}
+
+    .form-group::after {
+        content: "▾";
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 14px;
+        color: #9ca3af;
+        pointer-events: none;
+        transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    /* Arrow on hover */
+    .form-group:hover::after {
+        color: #b8bcc8;
+    }
+
+    /* Arrow on focus */
+    .form-group:has(select:focus)::after {
+        color: #5b7cfa;
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    /* ===============================
+   LABEL STYLING
+================================ */
+    .form-group label {
+        display: block;
+        margin-bottom: 10px;
+        color: #d1d5db;
+        font-size: 0.875rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+/* ===============================
+   FIREFOX FIXES
+================================ */
+@-moz-document url-prefix() {
+    .form-group select.form-input {
+        background-color: #2D2D2E !important;
+        color: #ffffff !important;
+    }
+
+        .form-group select.form-input option {
+            background-color: #2D2D2E !important;
+            color: #ffffff !important;
+        }
+}
+
+/* ===============================
+   WEBKIT SCROLLBAR
+================================ */
+.form-group select.form-input::-webkit-scrollbar {
+    width: 8px;
+}
+
+.form-group select.form-input::-webkit-scrollbar-track {
+    background: #1f2128;
+    border-radius: 4px;
+}
+
+.form-group select.form-input::-webkit-scrollbar-thumb {
+    background: #5b7cfa;
+    border-radius: 4px;
+}
+
+    .form-group select.form-input::-webkit-scrollbar-thumb:hover {
+        background: #4a6be8;
+    }
